@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
-const { ServerApiVersion, MongoClient } = require("mongodb");
+require("dotenv").config();
+const { ServerApiVersion, MongoClient, ObjectId } = require("mongodb");
 const app = express();
 const port = process.env.PORT || 3000;
 
@@ -8,8 +9,7 @@ const port = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
-const uri =
-  "mongodb+srv://freelance_db:g4RuUHzup7xDs3vw@cluster1a.tvkktwu.mongodb.net/?appName=Cluster1A";
+const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster1a.tvkktwu.mongodb.net/?appName=Cluster1A`;
 
 const client = new MongoClient(uri, {
   serverApi: {
@@ -30,6 +30,32 @@ async function run() {
     // 1 get ar madhome api gulake brower a dekhabo
     app.get("/job", async (req, res) => {
       const result = await freelanceCollection.find().toArray();
+      res.send(result);
+    });
+
+    // 2 get kore ,limite ar madhome matro 6 ta data ke dekhabo
+    app.get("/six-job", async (req, res) => {
+      const cursor = freelanceCollection.find().limit(6);
+      const result = await cursor.toArray();
+      res.send(result);
+    });
+
+    // 3 get kore productdelails dkehob id diye
+    app.get("/job/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await freelanceCollection.findOne(query);
+      res.send(result);
+    });
+    // job ar email diye my tasks dkehano
+    app.get("/job", async (req, res) => {
+      const email = req.query.email;
+      const query = {};
+      if (email) {
+        query.userEmail = email;
+      }
+      const cursor = freelanceCollection.find(query);
+      const result = await cursor.toArray();
       res.send(result);
     });
 
