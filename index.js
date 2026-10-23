@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+
 require("dotenv").config();
 const { ServerApiVersion, MongoClient, ObjectId } = require("mongodb");
 const app = express();
@@ -26,6 +27,7 @@ async function run() {
     /// mongodb theke api gulake niye asa
     const db = client.db("freelance_db");
     const freelanceCollection = db.collection("job");
+    const acceptedTaskCollection = db.collection("accepted_tasks");
 
     // 1 get ar madhome api gulake brower a dekhabo
     app.get("/job", async (req, res) => {
@@ -47,15 +49,31 @@ async function run() {
       const result = await freelanceCollection.findOne(query);
       res.send(result);
     });
-    // job ar email diye my tasks dkehano
-    app.get("/job", async (req, res) => {
+
+    // // 4 job accept kore data save korar jonne post route
+    app.post("/accepted-tasks", async (req, res) => {
+      const query = req.body;
+      const result = await acceptedTaskCollection.insertOne(query);
+      res.send(result);
+    });
+
+    //5  email diye nidrist user accept kora task gula dekhanor jonne
+    app.get("/my-tasks", async (req, res) => {
       const email = req.query.email;
       const query = {};
       if (email) {
-        query.userEmail = email;
+        query.applicantEmail = email;
       }
-      const cursor = freelanceCollection.find(query);
+      const cursor = acceptedTaskCollection.find(query);
       const result = await cursor.toArray();
+      res.send(result);
+    });
+
+    /// delete korar jonne
+    app.delete("/my-tasks/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await acceptedTaskCollection.deleteOne(query);
       res.send(result);
     });
 
